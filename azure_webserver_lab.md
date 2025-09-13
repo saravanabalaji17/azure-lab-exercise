@@ -1,0 +1,84 @@
+# Azure Lab Exercise: Webserver VM
+
+## 🎯 Objective
+Create an Azure Linux VM and configure it as a webserver with Apache HTTPD and a sample HTML page.
+
+---
+
+## Resource Group
+- **Name:** `<studentname>-rg`
+
+## Virtual Machine
+- **Name:** `<studentname>-webserver`
+- **OS:** AlmaLinux OS 9 – x64 Gen2 (or Ubuntu if AlmaLinux not available)
+- **Inbound ports:** Allow SSH (22) and HTTP (80)
+
+---
+
+## Part 1 – Create the VM
+1. Sign in to [Azure Portal](https://portal.azure.com).  
+2. Go to **Virtual machines → Create → Azure Virtual Machine**  
+   - Resource group: `<studentname>-rg`  
+   - VM name: `<studentname>-webserver`  
+   - Region: Select any region  
+   - Image: AlmaLinux OS 9 – x64 Gen2  
+   - Size: Standard_B1s (free tier eligible)  
+   - Authentication: SSH public key (generate new or use existing)  
+   - Inbound ports: Select **SSH (22)** and **HTTP (80)**  
+   - Click **Review + Create → Create**  
+
+---
+
+## Part 2 – Connect to VM
+After deployment, note the **Public IP**.  
+Connect using SSH:
+
+```bash
+ssh -i <studentname>-key.pem azureuser@<public-ip>
+```
+
+---
+
+## Part 3 – Install and Configure Apache HTTPD
+Run the following inside the VM:
+
+```bash
+# Update packages
+sudo dnf update -y
+
+# Install Apache HTTP server
+sudo dnf install -y httpd
+
+# Start and enable service
+sudo systemctl start httpd
+sudo systemctl enable httpd
+
+# Create a sample HTML page
+echo "<!DOCTYPE html>
+<html>
+<head>
+  <title>My Azure Webserver</title>
+  <style>
+    body { background-color: lightblue; font-family: Arial; text-align: center; margin-top: 20%; }
+    h1 { color: darkblue; }
+  </style>
+</head>
+<body>
+  <h1>Welcome! This is <studentname>-webserver</h1>
+  <p>Running on $(hostname)</p>
+</body>
+</html>" | sudo tee /var/www/html/index.html
+```
+
+---
+
+## Part 4 – Test Webserver
+1. Open a browser → `http://<public-ip>`  
+2. You should see the custom HTML page.
+
+---
+
+## ✅ Outcome
+- You deployed **`<studentname>-webserver`** VM in Azure.  
+- Installed and configured **Apache HTTPD**.  
+- Verified access to the custom **HTML page**.
