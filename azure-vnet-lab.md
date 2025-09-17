@@ -8,130 +8,136 @@
 * **Private VM (AlmaLinux) with no public IP**
 * **Access private VM via jumpbox**
 
+---
 
-
-# 🔹 Lab Exercise: Public & Private VNet with Jumpbox
-
-## 1. Create Resource Group
-
-1. Go to **Azure Portal** → **Resource Groups** → **Create**.
-2. Name: `RG-Network-Lab`
-3. Region: Choose your region (e.g., East US).
-4. Click **Review + Create → Create**.
+# 🔹 Lab Exercise: Azure Networking with Jumpbox & Private VM
 
 ---
 
-## 2. Create Virtual Network
+## Step 1: Create Resource Group
 
-1. Go to **Virtual Networks** → **Create**.
-2. Name: `vnet-lab`
-3. Resource Group: `RG-Network-Lab`
-4. Address space: `10.0.0.0/16`
-5. Click **Next: IP Addresses**
+1. Go to **Resource groups → Create**
+2. Name:
 
-### Add Subnets
+   ```
+   <studentname>-rg
+   ```
 
-* **Public Subnet**
-
-  * Name: `public-subnet`
-  * Address range: `10.0.1.0/24`
-* **Private Subnet**
-
-  * Name: `private-subnet`
-  * Address range: `10.0.2.0/24`
-
-Click **Review + Create → Create**.
+   Example: `raj-rg`
+3. Select region: `East US`
+4. **Review + Create → Create**
 
 ---
 
-## 3. Create Route Tables
+## Step 2: Create Virtual Network
+
+1. Go to **Virtual networks → Create**
+2. Name:
+
+   ```
+   <studentname>-vnet
+   ```
+
+   Example: `raj-vnet`
+3. Address space: `10.0.0.0/16`
+4. Add subnets:
+
+   * Public subnet → `10.0.1.0/24`
+     Name: `<studentname>-public-subnet`
+   * Private subnet → `10.0.2.0/24`
+     Name: `<studentname>-private-subnet`
+5. **Review + Create → Create**
+
+---
+
+## Step 3: Create Route Tables
 
 ### Public Route Table
 
-1. Go to **Route tables** → **Create**.
-2. Name: `public-rt`
-3. Resource Group: `RG-Network-Lab`
-4. Region: same as VNet.
+1. Go to **Route tables → Create**
 
-After creation:
+   * Name: `<studentname>-rt-public`
+   * Resource group: `<studentname>-rg`
+2. After creation → Open Route Table → Routes → **Add**
 
-* Go to **Routes** → **Add**.
-
-  * Route name: `internet-route`
-  * Address prefix: `0.0.0.0/0`
-  * Next hop: `Internet`
-  * Save.
-
-Associate subnet:
-
-* Go to **Subnet** → **Associate** → choose `public-subnet`.
+   * Name: `internet-route`
+   * Address prefix: `0.0.0.0/0`
+   * Next hop: `Internet`
+3. Associate subnet: `<studentname>-public-subnet`
 
 ---
 
 ### Private Route Table
 
-1. Create another route table: `private-rt`
-2. Associate with `private-subnet`.
-   👉 (No route to Internet here, keeps VM private).
+1. Create another route table:
+
+   * Name: `<studentname>-rt-private`
+   * Resource group: `<studentname>-rg`
+2. No new routes needed (default local routes apply)
+3. Associate subnet: `<studentname>-private-subnet`
 
 ---
 
-## 4. Create Jumpbox VM (Public Access)
+## Step 4: Create Jumpbox VM (Public Access)
 
-1. Go to **Virtual Machines** → **Create VM**.
-2. Resource Group: `RG-Network-Lab`
-3. Name: `jumpbox-vm`
-4. Image: **AlmaLinux 9 (latest)**
-5. Size: Standard\_B1s (small, for lab).
-6. Authentication: SSH key or password.
-7. Networking:
+1. Go to **Virtual machines → Create**
 
-   * VNet: `vnet-lab`
-   * Subnet: `public-subnet`
-   * Public IP: **Enabled** (auto-create).
-   * NIC NSG: Allow SSH (22).
-8. Create.
+   * Name: `<studentname>-jumpbox`
+   * Image: **AlmaLinux 9**
+   * Size: Standard\_B1s
+   * Authentication: SSH key or password
+   * Networking:
 
----
-
-## 5. Create Private VM (Private Access)
-
-1. Go to **Virtual Machines** → **Create VM**.
-2. Name: `private-vm`
-3. Image: AlmaLinux 9
-4. Size: Standard\_B1s
-5. Networking:
-
-   * VNet: `vnet-lab`
-   * Subnet: `private-subnet`
-   * Public IP: **None**
-   * NSG: Allow SSH from VNet (optional).
-6. Create.
+     * VNet: `<studentname>-vnet`
+     * Subnet: `<studentname>-public-subnet`
+     * Public IP: **Enabled**
+     * NIC NSG: Allow **SSH (22)** inbound
+2. **Review + Create → Create**
 
 ---
 
-## 6. Test Connectivity
+## Step 5: Create Private VM
 
-1. SSH into **Jumpbox**:
+1. Go to **Virtual machines → Create**
+
+   * Name: `<studentname>-private-vm`
+   * Image: AlmaLinux 9
+   * Size: Standard\_B1s
+   * Authentication: SSH key or password
+   * Networking:
+
+     * VNet: `<studentname>-vnet`
+     * Subnet: `<studentname>-private-subnet`
+     * Public IP: **None**
+     * NIC NSG: Allow SSH (22) **only from VNet**
+2. **Review + Create → Create**
+
+---
+
+## Step 6: Test Access
+
+1. From your local PC → SSH into jumpbox:
 
    ```bash
-   ssh azureuser@<Public-IP-of-Jumpbox>
+   ssh azureuser@<jumpbox-public-ip>
    ```
-2. From Jumpbox, SSH into **Private VM** (use its private IP):
+2. Inside jumpbox → SSH into private VM using private IP:
 
    ```bash
    ssh azureuser@10.0.2.4
    ```
 
-   (replace `10.0.2.4` with actual private VM IP from portal).
+   (replace with actual private IP)
 
 ---
 
 # ✅ End Result
 
-* **Public Subnet + Route Table → Internet access**
-* **Private Subnet + Route Table → No direct Internet**
-* **Jumpbox VM (Public) → can SSH to Private VM**
-* **Private VM → only accessible through Jumpbox**
+* `<studentname>-jumpbox` → Public access (via public subnet + route)
+* `<studentname>-private-vm` → No internet access, only reachable from jumpbox
+* Route tables correctly applied:
+
+  * Public RT → internet route `0.0.0.0/0`
+  * Private RT → local only
 
 ---
