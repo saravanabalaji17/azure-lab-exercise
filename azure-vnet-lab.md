@@ -1,4 +1,15 @@
 
+
+* **VNet**
+* **Public + Private subnets**
+* **Route tables (public + private)**
+* **Internet route in the public RT**
+* **Jumpbox (AlmaLinux) with public IP**
+* **Private VM (AlmaLinux) with no public IP**
+* **Access private VM via jumpbox**
+
+
+
 # 🔹 Lab Exercise: Public & Private VNet with Jumpbox
 
 ## 1. Create Resource Group
